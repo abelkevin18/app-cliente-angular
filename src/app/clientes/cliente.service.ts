@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { formatDate, DatePipe} from '@angular/common';
+import  localeES  from '@angular/common/locales/es';
 import { Cliente } from './cliente';
 import { CLIENTES } from './clientes.json';
 import { Observable, of, throwError } from 'rxjs';
@@ -23,15 +25,40 @@ export class ClienteService {
     //return of(CLIENTES);
     //return  this.http.get<Cliente[]>(this.urlEndPoint);
     return this.http.get(this.urlEndPoint).pipe (
-      map( response => response as Cliente[])
-    );
+      map( response => {
+        let clientes = response as Cliente[];
 
+        return clientes.map(cliente => {
+          cliente.nombre = cliente.nombre.toUpperCase();
+          
+
+          //cliente.createAt = formatDate(cliente.createAt, 'dd-MM-yyyy', 'en-US'); //con formateDate
+          
+          //con DatePipe
+          let datePipe = new DatePipe('es'); //por defecto trae en-US
+          //cliente.createAt = datePipe.transform(cliente.createAt, 'dd/MM/yyyy'); //formato normal
+          //cliente.createAt = datePipe.transform(cliente.createAt, 'EEEE dd, MMMM yyyy'); //formato con nombres
+
+          return cliente;
+        });
+      }
+      )
+    );
   }
+
+  
+
+
   create(cliente: Cliente) : Observable<any> {
     return this.http.
     post<any>(this.urlEndPoint, cliente, {headers: this.httpHeaders})
     .pipe(  //aqui empieza la validacion
       catchError(e => {
+        //inicio validacion con servidor
+        if(e.status==400) {
+          return throwError(e);
+        }
+        //fin valid. con sv
         swal.fire(e.error.mensaje,e.error.error , 'error');
         return throwError(e);
       })
@@ -54,7 +81,13 @@ export class ClienteService {
     .put<any>(`${this.urlEndPoint}/${cliente.id}`, cliente, {headers: this.httpHeaders})
     .pipe( //aqui empieza la validacion
       catchError(e => {
-        this.router.navigate(['/clientes']);
+        //this.router.navigate(['/clientes']);
+        //inicio validacion con servidor
+        if(e.status==400) {
+          return throwError(e);
+        }
+        //fin valid. con sv
+
         swal.fire('Error al editar el cliente', e.error.mensaje, 'error');
         return throwError(e);
       })
