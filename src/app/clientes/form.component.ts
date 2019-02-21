@@ -4,6 +4,7 @@ import { ClienteService } from './cliente.service';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import swal from 'sweetalert2';
+import { Region } from './region';
 
 @Component({
   selector: 'app-form',
@@ -12,6 +13,7 @@ import swal from 'sweetalert2';
 export class FormComponent implements OnInit {
 
   private cliente: Cliente = new Cliente();
+  private regiones: Region[];
   private titulo: string = "Crear Cliente";
 
   private errores: string[];
@@ -24,6 +26,7 @@ export class FormComponent implements OnInit {
 
   ngOnInit() {
     this.cargarCliente();
+    this.clienteService.getRegiones().subscribe(regiones => this.regiones = regiones);
   }
 
 
@@ -48,34 +51,40 @@ export class FormComponent implements OnInit {
         this.router.navigate(['/clientes']);
         swal.fire('Nuevo cliente', `${json.mensaje}: ${json.cliente.nombre}`, 'success');
       },
-      err => {
-        this.errores = err.error.errors as string[];
-        console.error('Codigo del error desde el backend: '+err.status);
-        console.error(err.error.errors);
-        
-        
-      }
+        err => {
+          this.errores = err.error.errors as string[];
+          console.error('Codigo del error desde el backend: ' + err.status);
+          console.error(err.error.errors);
+
+
+        }
       );
   }
 
-  update():void{
+  update(): void {
     this.clienteService.update(this.cliente)
-    .subscribe( json => {
-      this.router.navigate(['/clientes'])
-      swal.fire('Cliente Actualizado', `${json.mensaje}: ${json.cliente.nombre}`, 'success');
-    },
-    err => {
-      this.errores = err.error.errors as string[];
-      console.error('Codigo del error desde el backend: '+err.status);
-      console.error(err.error.errors);
-      
-      
-    }
+      .subscribe(json => {
+          this.router.navigate(['/clientes'])
+          swal.fire('Cliente Actualizado', `${json.mensaje}: ${json.cliente.nombre}`, 'success');
+        },
+          err => {
+            this.errores = err.error.errors as string[];
+            console.error('Codigo del error desde el backend: ' + err.status);
+            console.error(err.error.errors);
 
-    )
+
+          }
+
+      )
   }
 
-
+  compararRegion(o1:Region,o2:Region):boolean {
+    if(o1 === undefined && o2 === undefined){
+      return true;
+    }
+    return o1 === null || o2 === null || o1 === undefined || o2 === undefined ? false: o1.id === o2.id;
+    //return o1 == null || o2 == null ? false: o1.id === o2.id;
+  }
 
 
 }

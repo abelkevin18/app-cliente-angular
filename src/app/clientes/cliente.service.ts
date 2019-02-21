@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { formatDate, DatePipe} from '@angular/common';
 import  localeES  from '@angular/common/locales/es';
 import { Cliente } from './cliente';
-import { CLIENTES } from './clientes.json';
+//import { CLIENTES } from './clientes.json';
 import { Observable, of, throwError } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, tap } from 'rxjs/operators';
 import swal from 'sweetalert2';
 import { Router } from '@angular/router';
+import { Region } from './region';
 
 
 @Injectable({
@@ -21,6 +22,7 @@ export class ClienteService {
 
   constructor(private http: HttpClient, private router: Router) { }
 
+  /* Esto hasta antes de hacer paginación
   getClientes(): Observable<Cliente[]> {
     //return of(CLIENTES);
     //return  this.http.get<Cliente[]>(this.urlEndPoint);
@@ -38,16 +40,62 @@ export class ClienteService {
           let datePipe = new DatePipe('es'); //por defecto trae en-US
           //cliente.createAt = datePipe.transform(cliente.createAt, 'dd/MM/yyyy'); //formato normal
           //cliente.createAt = datePipe.transform(cliente.createAt, 'EEEE dd, MMMM yyyy'); //formato con nombres
-
           return cliente;
         });
       }
       )
     );
+  }*/
+
+  // usando el tap y llamando a list sin paginacion
+  /*getClientes(): Observable<Cliente[]> {
+    return this.http.get(this.urlEndPoint).pipe (
+      tap(response => {
+        let clientes = response as Cliente[];
+        clientes.forEach( cliente => {
+          console.log(cliente.nombre);
+        })
+      }),
+      map( response => {
+        let clientes = response as Cliente[];
+
+        return clientes.map(cliente => {
+          cliente.nombre = cliente.nombre.toUpperCase();
+          let datePipe = new DatePipe('es'); //por defecto trae en-US
+          return cliente;
+        });
+      }),
+      tap(response => {
+        response.forEach( cliente => {
+          console.log(cliente.nombre);
+        })
+      })
+    );
+  }*/
+
+  getClientes(page: number): Observable<any> {
+    return this.http.get(this.urlEndPoint+'/page/'+page).pipe (
+      tap((response : any) => {
+        
+        (response.content as Cliente[]).forEach( cliente => {
+          console.log(cliente.nombre);
+        })
+      }),
+      map( (response: any) => {
+        (response.content as Cliente[]).map(cliente => {
+          cliente.nombre = cliente.nombre.toUpperCase();
+          let datePipe = new DatePipe('es'); //por defecto trae en-US
+          return cliente;
+        });
+        return response;
+      }),
+      tap(response => {
+        (response.content as Cliente[]).forEach( cliente => {
+          console.log(cliente.nombre);
+        })
+      })
+    );
   }
-
-  
-
 
   create(cliente: Cliente) : Observable<any> {
     return this.http.
@@ -105,5 +153,22 @@ export class ClienteService {
       })
     );
   }
+
+  subirFoto(archivo: File, id): Observable<Cliente>{
+    let formData = new FormData();
+    formData.append("archivo", archivo);
+    formData.append("id",id);
+    return this.http.post(`${this.urlEndPoint}/upload`, formData)
+    .pipe(
+      map((response: any) => response.cliente as Cliente),
+      catchError(e => {
+        swal.fire(e.error.mensaje, e.error.error, 'error');
+        return throwError(e);
+      })
+    );
+  }
   
+  getRegiones(): Observable<Region[]>{
+    return this.http.get<Region[]>(this.urlEndPoint+ '/regiones');
+  }
 }

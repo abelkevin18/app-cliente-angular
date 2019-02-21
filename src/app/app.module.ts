@@ -11,17 +11,25 @@ import { RouterModule, Routes} from '@angular/router'
 import { HttpClientModule } from '@angular/common/http';
 import { FormComponent } from './clientes/form.component';
 import { FormsModule } from '@angular/forms';
+import { PaginatorComponent } from './paginator/paginator.component';
 
 import { registerLocaleData} from '@angular/common';
 import  localeES  from '@angular/common/locales/es';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 //para el formato de las fechas
+import { MatDatepickerModule} from '@angular/material';
+import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { DetalleComponent } from './clientes/detalle/detalle.component';
 registerLocaleData(localeES,'es');
 
 const routes: Routes = [
   {path: '', redirectTo: '/clientes', pathMatch: 'full'},
   {path: 'clientes', component: ClientesComponent},
+  {path: 'clientes/page/:page', component: ClientesComponent},
   {path: 'clientes/form', component: FormComponent},
   {path: 'clientes/form/:id', component: FormComponent}
+  //{path: 'clientes/ver/:id', component: DetalleComponent}
 
 ];
 
@@ -29,13 +37,18 @@ const routes: Routes = [
   declarations: [
     AppComponent,
     ClientesComponent,
-    FormComponent
+    FormComponent,
+    PaginatorComponent,
+    DetalleComponent
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
     FormsModule,
-    RouterModule.forRoot(routes)
+    RouterModule.forRoot(routes),
+    BrowserAnimationsModule,
+    MatDatepickerModule, 
+    MatMomentDateModule
   ],
   providers: [
     ClienteService,
